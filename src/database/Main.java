@@ -12,8 +12,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		createTable();
-		insertTable();
+		zwinger("Cyndie's Magic");
 
 	}
 	
@@ -21,7 +20,7 @@ public class Main {
 		try{
 			Connection con = getConnection();
 			
-			String csvFile = "/Users/Serkan/workspace/HelloDatabaseWorldJava-master/greyhounddata.csv";
+			String csvFile = "/Users/Conrad1/git/dograce/greyhounddata.csv";
 			BufferedReader br = null;
 			String line = "";
 			String cvsSplitBy = ";";
@@ -32,8 +31,8 @@ public class Main {
 				while ((line = br.readLine()) != null) {
 				        // use comma as separator
 					String[] greyhounddata = line.split(cvsSplitBy);
-					System.out.println(" 0	"+greyhounddata[0]+" 1	"+greyhounddata[1]+" 2	"+greyhounddata[2]+" 3	"+greyhounddata[3]+" 4	"+greyhounddata[4]+" 5	"+greyhounddata[5]+" 6		"+greyhounddata[6]+" 7	"+greyhounddata[7]+" 8	"+greyhounddata[8]+" 9	"+greyhounddata[9]);
-					PreparedStatement insert = con.prepareStatement("INSERT INTO Hund(Land,Jahr,Jahresrang,Geschlecht) VALUES ('"+greyhounddata[0]+"',"+greyhounddata[1]+","+greyhounddata[2]+","+geschlecht(greyhounddata[4])+");");
+					System.out.println(" "+greyhounddata[0]+" "+greyhounddata[1]+" "+greyhounddata[2]+" "+greyhounddata[3]+" "+greyhounddata[4]+" "+greyhounddata[5]+" "+greyhounddata[6]+" "+greyhounddata[7]+" "+greyhounddata[8]+" "+greyhounddata[9]);
+					PreparedStatement insert = con.prepareStatement("INSERT INTO Hund(Land,Jahr,Jahresrang) VALUES ('"+greyhounddata[0]+"',"+greyhounddata[1]+","+greyhounddata[2]+");");
 					insert.executeUpdate();
 				}
 
@@ -55,17 +54,32 @@ public class Main {
 		}
 	}
 	
-	public static String geschlecht(String string) {
-		// TODO Auto-generated method stub
+//	public static String geschlecht(String string) {
+//		// TODO Auto-generated method stub
+//		String result="";
+//		if(string.equals("m") || string.equals("w") ){
+//			result=string;
+//		}else{
+//			result="";
+//		}
+//		return result;
+//	}
+	public static void zwinger(String string){
 		String result="";
-		if(string.equals('m') || string.equals('w') ){
-			result=string;
-		}else{
-			result="";
+		for (int i = 0; i < string.length(); i++) {
+			String temp="";
+			temp=temp+string.charAt(i)+string.charAt(i+1)+string.charAt(i+2);
+			if(temp=="'s "){
+				while(string.charAt(i)!='['){
+					result=result+string.charAt(i);
+					i++;
+				}
+			}
+			
 		}
-		return result;
+		System.out.println(result);
 	}
-
+	
 	public static String aufenthaltsland(String string) {
 		// TODO Auto-generated method stub
 		String result = "";
