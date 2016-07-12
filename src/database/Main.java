@@ -7,14 +7,16 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
 
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-		createTable();
-		insertTable();
-//		System.out.println("Zwinger: "+zwinger("My Boy Snoop [AU/AU 2012]"));
-//		System.out.println("Name: "+name("My Boy Snoop [AU/AU 2012]"));
+//		createTable();
+//		insertTable();
+		anfragen();
+		
 	}
 	
 	public static void insertTable() throws Exception{
@@ -32,9 +34,22 @@ public class Main {
 				while ((line = br.readLine()) != null) {
 				        // use comma as separator
 					String[] greyhounddata = line.split(cvsSplitBy);
-					System.out.println(" "+greyhounddata[0]+" "+greyhounddata[1]+" "+greyhounddata[2]+" "+greyhounddata[3]+" "+greyhounddata[4]+" "+greyhounddata[5]+" "+greyhounddata[6]+" "+greyhounddata[7]+" "+greyhounddata[8]+" "+greyhounddata[9]);
-					PreparedStatement insert = con.prepareStatement("INSERT INTO Hund(Land,Jahr,Jahresrang,Geschlecht,Papi,Mama,Anzahl_der_Rennen,kumulierte_Punkte,durchs_Renndistanz,geburtsland,aufenthaltsland,geburtsjahr,name,zwinger) VALUES ('"+greyhounddata[0]+"',"+greyhounddata[1]+","+greyhounddata[2]+",'"+geschlecht(greyhounddata[4])+"','"+Babo(greyhounddata[5])+"','"+Babo(greyhounddata[6])+"','"+greyhounddata[7]+"',"+(int)Double.parseDouble(greyhounddata[8])+","+durchs_Renndistanz(greyhounddata[9])+",'"+geburtsland(greyhounddata[3])+"','"+aufenthaltsland(greyhounddata[3])+"',"+geburtsjahr(greyhounddata[3])+",'"+name(greyhounddata[3])+"','"+zwinger(greyhounddata[3])+"');");
-					insert.executeUpdate();
+//					System.out.println(" "+greyhounddata[0]+" "+greyhounddata[1]+" "+greyhounddata[2]+" "+greyhounddata[3]+" "+greyhounddata[4]+" "+greyhounddata[5]+" "+greyhounddata[6]+" "+greyhounddata[7]+" "+greyhounddata[8]+" "+greyhounddata[9]);
+					
+					PreparedStatement insert_Hund = con.prepareStatement("INSERT INTO Hund(Mama,Geburtsland,Vater,Name,Aufenthaltsland,Geburtsjahr,Geschlecht) "
+							+ "SELECT '"+Babo(greyhounddata[6])+"','"+geburtsland(greyhounddata[3])+"','"+Babo(greyhounddata[5])+"','"+name(greyhounddata[3])+"','"+aufenthaltsland(greyhounddata[3])+"',"+geburtsjahr(greyhounddata[3])+",'"+geschlecht(greyhounddata[4])+"'"
+									+ "WHERE NOT EXISTS (SELECT Mama,Geburtsland,Vater,Name,Aufenthaltsland,Geburtsjahr,Geschlecht "
+									+ "FROM Hund "
+									+ "WHERE Geschlecht = '"+geschlecht(greyhounddata[4])+"' AND Vater='"+Babo(greyhounddata[5])+"' AND Mama='"+Babo(greyhounddata[6])+"' AND Geburtsland='"+geburtsland(greyhounddata[3])+"' AND Aufenthaltsland='"+aufenthaltsland(greyhounddata[3])+"' AND Geburtsjahr="+geburtsjahr(greyhounddata[3])+" AND Name='"+name(greyhounddata[3])+"');");
+					
+					PreparedStatement insert_Ergebnis = con.prepareStatement("INSERT INTO Ergebnis(durchs_Renndistanz,Rang,kumulierte_Punktzahl,Land,Jahr,Anzahl_der_Rennen) SELECT "
+									+durchs_Renndistanz(greyhounddata[9])+","+greyhounddata[2]+","+(int)Double.parseDouble(greyhounddata[8])+",'"+greyhounddata[0]+"',"+greyhounddata[1]+","+greyhounddata[7]
+											+"WHERE NOT EXISTS (SELECT Land, Jahr FROM Ergebnis WHERE Land = '"+greyhounddata[0]+"' AND Jahr="+greyhounddata[1]+" AND h_id=h_id);");
+					
+					PreparedStatement insert_Zwinger = con.prepareStatement("INSERT INTO Zwinger (Name) SELECT '"+zwinger(greyhounddata[3])+"' WHERE NOT EXISTS ( SELECT Name FROM Zwinger WHERE Name = '"+zwinger(greyhounddata[3])+"');");
+					insert_Hund.executeUpdate();
+					insert_Ergebnis.executeUpdate();
+					insert_Zwinger.executeUpdate();
 				}
 
 			} catch (FileNotFoundException e) {
@@ -55,6 +70,28 @@ public class Main {
 		}
 	}
 
+	public static ArrayList<String> anfragen() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a1 = con.prepareStatement("SELECT h.ID, h.Name, sum(e.kumulierte_Punktzahl) FROM Hund h, Ergebnis e WHERE h.ID = e.h_id GROUP BY h.ID, h.Name e.Anzahl_der_Rennen ORDER BY (sum(e.kumulierte_Punktzahl)/e.Anzahl_der_Rennen) DESC LIMIT 20;");
+		ResultSet result_a1 =a1.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a1.next()){
+			System.out.print(result_a1.getString("ID"));
+			System.out.print(":  ");
+			System.out.println(result_a1.getString("Name"));
+			
+			array.add(result_a1.getString("ID"));
+			array.add(result_a1.getString("Name"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+	
 	public static String name(String string) {
 		String result = "";
 		String [] blub;
@@ -71,16 +108,19 @@ public class Main {
 				}
 			}
 			return Babo(result);
-		}else{
+		}else if(string.split(" ").length>3){
 			blub=string.split(" ");
 			for (int i = 0; i < blub.length; i++) {
 				if(blub[i+1].contains("[")){
 					break;
 				}else{
-					result=result+" "+blub[i];
+					result = result + " " + blub[i];
 				}
 			}
 			return Babo(result);
+		}
+		else{
+			return string.split(" ")[0];
 		}
 	}
 	
@@ -88,20 +128,6 @@ public class Main {
 		String result="";
 		result=string.substring(string.length()-5,string.length()-1);
 		return Integer.parseInt(result);
-	}
-
-	public static String Babo_2(String string) {
-		String result = "";
-		for (int i = 0; i < string.length(); i++) {
-			while(string.charAt(i)!='['){
-				result=result+string.charAt(i);
-				i++;
-			}
-			if(string.charAt(i)=='['){
-				return result;
-			}
-		}
-		return result;
 	}
 
 	public static int durchs_Renndistanz(String string) {
@@ -115,31 +141,10 @@ public class Main {
 		return string.replace("'","");
 	}
 
-	public static boolean isFirstWord(String string){
-		
-		int sIndex =0;
-		int lIndex = 0;
-		String trash="'s ";
-		
-		
-		for (int i = 0; i < string.length(); i++) {
-			if(string.charAt(i)==trash.charAt(0) && string.charAt(i+1)==trash.charAt(1))
-				sIndex = i;
-		}
-		
-		for (int i=0; i<string.length(); i++){
-			if(string.charAt(i)==trash.charAt(2)){
-				lIndex = i;
-				break;
-			}
-		}
-		return sIndex < lIndex;
-	}
-
 	public static String geschlecht(String string) {
 		// TODO Auto-generated method stub
 		String result="";
-		if(string.equals("m") || string.equals("w")){
+		if(string.equals("m") || string.equals("f")){
 			result=string;
 		}else{
 			result=" ";
@@ -183,12 +188,20 @@ public class Main {
 	public static void createTable() throws Exception{
 		try{
 			Connection con =getConnection();
-			PreparedStatement create_Hund = con.prepareStatement("CREATE TABLE IF NOT EXISTS Hund(Hund_ID SERIAL PRIMARY KEY, Land VARCHAR(252), Jahr INT, Jahresrang INT, Name VARCHAR(252), Zwinger VARCHAR(252), Geburtsland VARCHAR(5), Aufenthaltsland VARCHAR(5), Geburtsjahr INT, Geschlecht VARCHAR(1), Papi VARCHAR(252), Mama VARCHAR(252), Anzahl_der_Rennen INT, kumulierte_Punkte INT, durchs_Renndistanz INT);");
-			PreparedStatement create_Rennen = con.prepareStatement("CREATE TABLE IF NOT EXISTS Rennen(Hund_ID SERIAL references Hund(Hund_ID),durch_Rennpunkte INT);");
-			PreparedStatement create_Zwinger = con.prepareStatement("CREATE TABLE IF NOT EXISTS Zwinger(name VARCHAR(252) PRIMARY KEY);");
-			create_Hund.executeUpdate();
-			create_Rennen.executeUpdate();
+			
+			PreparedStatement create_Zwinger = con.prepareStatement("CREATE TABLE IF NOT EXISTS Zwinger(Name VARCHAR(252) PRIMARY KEY);");
+			
+			PreparedStatement create_Hund = con.prepareStatement("CREATE TABLE IF NOT EXISTS Hund(ID SERIAL PRIMARY KEY,Mama VARCHAR(252),"
+					+ "Geburtsland VARCHAR(5),Vater VARCHAR(252),Name VARCHAR(252),Aufenthaltsland VARCHAR(5),Geburtsjahr INT,"
+					+ "Geschlecht VARCHAR(1),z_name VARCHAR(252),FOREIGN KEY (z_name) REFERENCES Zwinger (Name));");
+			
+			PreparedStatement create_Ergebnis = con.prepareStatement("CREATE TABLE IF NOT EXISTS Ergebnis(ID SERIAL PRIMARY KEY,h_id INT,"
+					+ "durchs_Renndistanz INT,Rang INT,kumulierte_Punktzahl INT,Land VARCHAR(252),Jahr INT,Anzahl_der_Rennen INT,"
+					+ "FOREIGN KEY (h_id) REFERENCES Hund (ID));");
+			
 			create_Zwinger.executeUpdate();
+			create_Hund.executeUpdate();
+			create_Ergebnis.executeUpdate();
 		}catch(Exception e){
 			System.out.println(e);
 		}
@@ -196,7 +209,7 @@ public class Main {
 			System.out.println("The CREATE Statements complete");
 		}
 	}
-	
+		
 	public static Connection getConnection() throws Exception{
 		try{
 			String driver = "org.postgresql.Driver";
@@ -240,4 +253,3 @@ public class Main {
 		}
 	}
 }
-
