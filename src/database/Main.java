@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-//		createTable();
+		createTable();
 		insertTable();
 //		anfragen();
 		
@@ -34,15 +34,15 @@ public class Main {
 				while ((line = br.readLine()) != null) {
 				        // use comma as separator
 					String[] greyhounddata = line.split(cvsSplitBy);
-					System.out.println(" "+greyhounddata[0]+" "+greyhounddata[1]+" "+greyhounddata[2]+" "+greyhounddata[3]+" "
-							+ ""+greyhounddata[4]+" "+greyhounddata[5]+" "+greyhounddata[6]+" "+greyhounddata[7]+" "+greyhounddata[8]+" "
-									+ ""+greyhounddata[9]);
+//					System.out.println(" "+greyhounddata[0]+" "+greyhounddata[1]+" "+greyhounddata[2]+" "+greyhounddata[3]+" "
+//							+ ""+greyhounddata[4]+" "+greyhounddata[5]+" "+greyhounddata[6]+" "+greyhounddata[7]+" "+greyhounddata[8]+" "
+//									+ ""+greyhounddata[9]);
 					
 					PreparedStatement insert_Hund = con.prepareStatement("INSERT INTO Hund(Mama,Geburtsland,Vater,Name"
-									+ ",Aufenthaltsland,Geburtsjahr,Geschlecht) "
+									+ ",Aufenthaltsland,Geburtsjahr,Geschlecht,z_name) "
 							+ "SELECT '"+Babo(greyhounddata[6])+"','"+geburtsland(greyhounddata[3])+"','"+Babo(greyhounddata[5])+"','"
 									+ ""+name(greyhounddata[3])+"','"+aufenthaltsland(greyhounddata[3])+"',"+geburtsjahr(greyhounddata[3])+""
-									+ ",'"+geschlecht(greyhounddata[4])+"'"
+									+ ",'"+geschlecht(greyhounddata[4])+"','"+zwinger(greyhounddata[3])+"'"
 							+ "WHERE NOT EXISTS (SELECT Mama,Geburtsland,Vater,Name,Aufenthaltsland,Geburtsjahr,Geschlecht "
 							+ "FROM Hund "
 							+ "WHERE Geschlecht = '"+geschlecht(greyhounddata[4])+"' AND Vater='"+Babo(greyhounddata[5])+"' "
@@ -50,18 +50,28 @@ public class Main {
 									+ "AND Aufenthaltsland='"+aufenthaltsland(greyhounddata[3])+"' "
 									+ "AND Geburtsjahr="+geburtsjahr(greyhounddata[3])+" AND Name='"+name(greyhounddata[3])+"');");
 					
+					PreparedStatement get_h_id = con.prepareStatement("SELECT ID FROM Hund "
+							+ "WHERE Geschlecht = '"+geschlecht(greyhounddata[4])+"' AND Vater='"+Babo(greyhounddata[5])+"' "
+							+ "AND Mama='"+Babo(greyhounddata[6])+"' AND Geburtsland='"+geburtsland(greyhounddata[3])+"' "
+							+ "AND Aufenthaltsland='"+aufenthaltsland(greyhounddata[3])+"' "
+							+ "AND Geburtsjahr="+geburtsjahr(greyhounddata[3])+" AND Name='"+name(greyhounddata[3])+"';");
+
+					ResultSet result = get_h_id.executeQuery();
+					result.next();
+					int h_id = result.getInt("ID");
 					PreparedStatement insert_Ergebnis = con.prepareStatement("INSERT INTO Ergebnis(durchs_Renndistanz,Rang,kumulierte_Punktzahl,"
-							+ "Land,Jahr,Anzahl_der_Rennen) "
+							+ "Land,Jahr,Anzahl_der_Rennen,h_id) "
 							+ "SELECT "+durchs_Renndistanz(greyhounddata[9])+","+greyhounddata[2]+","+(int)Double.parseDouble(greyhounddata[8])+""
-									+ ",'"+greyhounddata[0]+"',"+greyhounddata[1]+","+greyhounddata[7]
+									+ ",'"+greyhounddata[0]+"',"+greyhounddata[1]+","+greyhounddata[7]+","+h_id+" "
 							+"WHERE NOT EXISTS (SELECT Land, Jahr FROM Ergebnis WHERE Land = '"+greyhounddata[0]+"' "
 									+ "AND Jahr="+greyhounddata[1]+" AND h_id=h_id);");
 					
 					PreparedStatement insert_Zwinger = con.prepareStatement("INSERT INTO Zwinger (Name) SELECT '"+zwinger(greyhounddata[3])+"'"
 							+ " WHERE NOT EXISTS ( SELECT Name FROM Zwinger WHERE Name = '"+zwinger(greyhounddata[3])+"');");
+					insert_Zwinger.executeUpdate();
 					insert_Hund.executeUpdate();
 					insert_Ergebnis.executeUpdate();
-					insert_Zwinger.executeUpdate();
+					
 				}
 
 			} catch (FileNotFoundException e) {
@@ -243,6 +253,7 @@ public class Main {
 	}
 
 	public static String zwinger(String string){
+		string=starKiller(string);
 		String result = "";
 		String [] blub;
 		
@@ -263,5 +274,9 @@ public class Main {
 		}else{
 			return "";
 		}
+	}
+
+	public static String starKiller(String string){
+		return string.replace("* ", "");
 	}
 }
