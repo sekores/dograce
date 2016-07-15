@@ -15,10 +15,80 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 //		createTable();
 //		insertTable();
-		anfragen();
-		
+		System.out.println("");
+		System.out.print("----------------Anfrage1----------------");
+		a1();
+		System.out.println("");
+		System.out.print("----------------Anfrage2----------------");
+		a2();
+		System.out.println("");
+		System.out.print("----------------Anfrage3----------------");
+		a3(1);
+		System.out.println("");
+		System.out.print("----------------Anfrage4----------------");
+		a4();
 	}
 	
+	public static ArrayList<String> a4() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a4 = con.prepareStatement("SELECT h.Mama, h.Vater "
+				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE e.h_id = h.ID "
+				+ "GROUP BY h.Mama, h.Vater "
+				+ "ORDER BY sum(e.kumulierte_Punktzahl)/sum(e.Anzahl_der_Rennen) "
+				+ "DESC LIMIT 1;");
+		ResultSet result_a4 =a4.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a4.next()){
+			System.out.print(result_a4.getString("Mama"));
+			System.out.print(":  ");
+			System.out.println(result_a4.getString("Vater"));
+			
+			array.add(result_a4.getString("Mama"));
+			array.add(result_a4.getString("Vater"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+	
+	public static ArrayList<String> a3(int i) throws Exception {
+		try{
+			Connection con = getConnection();
+			PreparedStatement a3 = con.prepareStatement("SELECT h.ID , h.Name, h.z_name, e.Jahr "
+					+ "FROM Hund h, Ergebnis e "
+					+ "WHERE h.ID = "+i+" AND h.ID = e.h_ID "
+					+ "ORDER BY e.Jahr "
+					+ "ASC LIMIT 1;");
+			ResultSet result_a3 =a3.executeQuery();
+			ArrayList<String> array = new ArrayList<String>();
+			while(result_a3.next()){
+				System.out.print(result_a3.getString("ID"));
+				System.out.print(":  ");
+				System.out.print(result_a3.getString("Name"));
+				System.out.print(":  ");
+				System.out.print(result_a3.getString("z_name"));
+				System.out.print(":  ");
+				System.out.println(result_a3.getString("Jahr"));
+				
+				array.add(result_a3.getString("ID"));
+				array.add(result_a3.getString("Name"));
+				array.add(result_a3.getString("z_name"));
+				array.add(result_a3.getString("Jahr"));
+			}
+			System.out.println("All records have been selected!");
+			return array;
+			}catch(Exception e){
+				System.out.println(e);
+			}
+			return null;
+		
+	}
+
 	public static void insertTable() throws Exception{
 		try{
 			Connection con = getConnection();
@@ -93,11 +163,39 @@ public class Main {
 		}
 	}
 
-	public static ArrayList<String> anfragen() throws Exception{
+	public static ArrayList<String> a2() throws Exception{
 		try{
 		Connection con = getConnection();
-		PreparedStatement a1 = con.prepareStatement("SELECT h.ID, h.Name "
+		PreparedStatement a2 = con.prepareStatement("SELECT z_name, (sum(e.kumulierte_Punktzahl)/sum(e.Anzahl_der_Rennen)) AS Gesamtpunktzahl "
+				+ "FROM Hund h, Ergebnis e, Zwinger z "
+				+ "WHERE z.Name = h.z_name AND e.h_id = h.ID "
+				+ "GROUP BY z_name "
+				+ "ORDER BY Gesamtpunktzahl "
+				+ "DESC LIMIT 5;");
+		ResultSet result_a2 =a2.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a2.next()){
+			System.out.print(result_a2.getString("z_name"));
+			System.out.print(":  ");
+			System.out.println(result_a2.getString("Gesamtpunktzahl"));
+			
+			array.add(result_a2.getString("z_name"));
+			array.add(result_a2.getString("Gesamtpunktzahl"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+	
+	public static ArrayList<String> a1() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a1 = con.prepareStatement("SELECT h.ID, h.Name, z_name "
 				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE h.ID = e.h_id "
 				+ "GROUP BY h.ID "
 				+ "ORDER BY (sum(e.kumulierte_Punktzahl)/sum(e.Anzahl_der_Rennen)) "
 				+ "DESC LIMIT 20;");
@@ -106,7 +204,9 @@ public class Main {
 		while(result_a1.next()){
 			System.out.print(result_a1.getString("ID"));
 			System.out.print(":  ");
-			System.out.println(result_a1.getString("Name"));
+			System.out.print(result_a1.getString("Name"));
+			System.out.print(":  ");
+			System.out.println(result_a1.getString("z_name"));
 			
 			array.add(result_a1.getString("ID"));
 			array.add(result_a1.getString("Name"));
@@ -141,7 +241,7 @@ public class Main {
 				if(blub[i+1].contains("[")){
 					break;
 				}else{
-					result = result + " " + blub[i];
+					result = result + blub[i]+" ";
 				}
 			}
 			return Babo(result);
@@ -275,7 +375,7 @@ public class Main {
 					break;
 				}
 			}
-			return Babo(result);
+			return Babo(result.replace(" ", ""));
 		}else{
 			return "";
 		}
