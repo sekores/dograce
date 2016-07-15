@@ -1,5 +1,6 @@
-﻿SELECT *
+﻿SELECT h.ID, h.Name, z_name
 FROM Hund h, Ergebnis e
-WHERE e.h_id=h.id
-ORDER BY e.kumulierte_Punktzahl/e.Anzahl_der_Rennen
-LIMIT 20;
+WHERE h.ID = e.h_id
+GROUP BY h.ID 
+ORDER BY (sum(e.kumulierte_Punktzahl)/sum(e.Anzahl_der_Rennen))
+DESC LIMIT 20;
