@@ -13,8 +13,8 @@ import java.util.ArrayList;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-//		createTable();
-//		insertTable();
+		createTable();
+		insertTable();
 		System.out.println("");
 		System.out.print("----------------Anfrage1----------------");
 		a1();
@@ -23,16 +23,198 @@ public class Main {
 		a2();
 		System.out.println("");
 		System.out.print("----------------Anfrage3----------------");
-		a3(1);
+		a3(4000); 		//Geben Sie eine Hunde ID ein.
 		System.out.println("");
 		System.out.print("----------------Anfrage4----------------");
 		a4();
+		System.out.println("");
+		System.out.print("----------------Anfrage5----------------");
+		a5();
+		System.out.println("");
+		System.out.print("----------------Anfrage6----------------");
+		a6();
+		System.out.println("");
+		System.out.print("----------------Anfrage7----------------");
+		a7(5);			//Geben Sie ein LIMIT ein.
+		System.out.println("");
+		System.out.print("----------------Anfrage8----------------");
+		a8();
+		System.out.println("");
+		System.out.print("----------------Anfrage9----------------");
+		a9();
+	}
+	
+	public static ArrayList<String> a8() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a8 = con.prepareStatement("SELECT h.ID, h.Name, h.z_name, e.Jahr, e.Land, "
+				+ "(e.kumulierte_Punktzahl/e.Anzahl_der_Rennen) AS durchs_Punktzahl_pro_Rennen "
+				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE h.ID = e.h_id "
+				+ "ORDER BY durchs_Punktzahl_pro_Rennen "
+				+ "DESC LIMIT 10;");
+		ResultSet result_a8 =a8.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a8.next()){
+			System.out.print(result_a8.getString("ID"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("Name"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("z_name"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("Jahr"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("Land"));
+			System.out.print(" ");
+			System.out.println(result_a8.getString("durchs_Punktzahl_pro_Rennen"));
+			
+			array.add(result_a8.getString("ID"));
+			array.add(result_a8.getString("Name"));
+			array.add(result_a8.getString("z_name"));
+			array.add(result_a8.getString("Jahr"));
+			array.add(result_a8.getString("Land"));
+			array.add(result_a8.getString("durchs_Punktzahl_pro_Rennen"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+	
+	public static ArrayList<String> a5() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a8 = con.prepareStatement("SELECT h.Vater, count(h.ID) AS  Anzahl_der_Kinder "
+				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE e.h_id = h.ID "
+				+ "GROUP BY h.Vater "
+				+ "ORDER BY Anzahl_der_Kinder "
+				+ "DESC LIMIT 10;");
+		ResultSet result_a8 =a8.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a8.next()){
+			System.out.print(result_a8.getString("Vater"));
+			System.out.print(" ");
+			System.out.println(result_a8.getString("Anzahl_der_Kinder"));
+			
+			array.add(result_a8.getString("Vater"));
+			array.add(result_a8.getString("Anzahl_der_Kinder"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+
+	public static ArrayList<String> a6() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a8 = con.prepareStatement("SELECT h.Mama, sum(e.kumulierte_Punktzahl)/sum(e.Anzahl_der_Rennen) AS Punkte "
+				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE h.ID = e.h_ID "
+				+ "GROUP BY h.Mama "
+				+ "ORDER BY Punkte "
+				+ "DESC LIMIT 10;");
+		ResultSet result_a8 =a8.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a8.next()){
+			System.out.print(result_a8.getString("Mama"));
+			System.out.print(" ");
+			System.out.println(result_a8.getString("Punkte"));
+			
+			array.add(result_a8.getString("Mama"));
+			array.add(result_a8.getString("Punkte"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+	
+	public static ArrayList<String> a9() throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a8 = con.prepareStatement("SELECT h.ID, h.Name, h.z_name, e.Jahr, e.Land, "
+				+ "(e.kumulierte_Punktzahl/e.Anzahl_der_Rennen)/durchs_Renndistanz AS durchs_Punktzahl_pro_Meter "
+				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE h.ID = e.h_id "
+				+ "ORDER BY durchs_Punktzahl_pro_Meter "
+				+ "DESC LIMIT 10;");
+		ResultSet result_a8 =a8.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a8.next()){
+			System.out.print(result_a8.getString("ID"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("Name"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("z_name"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("Jahr"));
+			System.out.print(" ");
+			System.out.print(result_a8.getString("Land"));
+			System.out.print(" ");
+			System.out.println(result_a8.getString("durchs_Punktzahl_pro_Meter"));
+			
+			array.add(result_a8.getString("ID"));
+			array.add(result_a8.getString("Name"));
+			array.add(result_a8.getString("z_name"));
+			array.add(result_a8.getString("Jahr"));
+			array.add(result_a8.getString("Land"));
+			array.add(result_a8.getString("durchs_Punktzahl_pro_Meter"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
+	}
+	
+	public static ArrayList<String> a7(int i) throws Exception{
+		try{
+		Connection con = getConnection();
+		PreparedStatement a7 = con.prepareStatement("SELECT h.ID, h.Name, h.z_name, "
+				+ "sum (e.kumulierte_Punktzahl) / sum (e.Anzahl_der_Rennen) AS Punktzahl "
+				+ "FROM Hund h, Ergebnis e "
+				+ "WHERE e.h_id = h.ID "
+				+ "GROUP BY h.ID "
+				+ "ORDER BY Punktzahl "
+				+ "ASC LIMIT "+i+";");
+		ResultSet result_a7 =a7.executeQuery();
+		ArrayList<String> array = new ArrayList<String>();
+		while(result_a7.next()){
+			System.out.print(result_a7.getString("ID"));
+			System.out.print(" ");
+			System.out.print(result_a7.getString("Name"));
+			System.out.print(" ");
+			System.out.print(result_a7.getString("z_name"));
+			System.out.print(" ");
+			System.out.println(result_a7.getString("Punktzahl"));
+			
+			array.add(result_a7.getString("ID"));
+			array.add(result_a7.getString("Name"));
+			array.add(result_a7.getString("z_name"));
+			array.add(result_a7.getString("Punktzahl"));
+		}
+		System.out.println("All records have been selected!");
+		return array;
+		}catch(Exception e){
+			System.out.println(e);
+		}
+		return null;
 	}
 	
 	public static ArrayList<String> a4() throws Exception{
 		try{
 		Connection con = getConnection();
-		PreparedStatement a4 = con.prepareStatement("SELECT h.Mama, h.Vater "
+		PreparedStatement a4 = con.prepareStatement("SELECT h.Mama, h.Vater, "
+				+ "sum(e.kumulierte_Punktzahl)/sum(e.Anzahl_der_Rennen) AS Kinderpunktzahl "
 				+ "FROM Hund h, Ergebnis e "
 				+ "WHERE e.h_id = h.ID "
 				+ "GROUP BY h.Mama, h.Vater "
@@ -42,11 +224,14 @@ public class Main {
 		ArrayList<String> array = new ArrayList<String>();
 		while(result_a4.next()){
 			System.out.print(result_a4.getString("Mama"));
-			System.out.print(":  ");
-			System.out.println(result_a4.getString("Vater"));
+			System.out.print(" x  ");
+			System.out.print(result_a4.getString("Vater"));
+			System.out.print(" = ");
+			System.out.println(result_a4.getString("Kinderpunktzahl"));
 			
 			array.add(result_a4.getString("Mama"));
 			array.add(result_a4.getString("Vater"));
+			array.add(result_a4.getString("Kinderpunktzahl"));
 		}
 		System.out.println("All records have been selected!");
 		return array;
@@ -210,6 +395,7 @@ public class Main {
 			
 			array.add(result_a1.getString("ID"));
 			array.add(result_a1.getString("Name"));
+			array.add(result_a1.getString("z_name"));
 		}
 		System.out.println("All records have been selected!");
 		return array;
